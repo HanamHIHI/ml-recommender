@@ -162,7 +162,7 @@ print(ndarray_vectors.shape, compressed_vectors.shape)
 # Two parameters to tune:
 # min_cluster_size: Only consider cluster that have at least 25 elements
 # threshold: Consider sentence pairs with a cosine-similarity larger than threshold as similar
-clusters = util.community_detection(compressed_vectors, min_community_size=25, threshold=0.8)
+clusters = util.community_detection(np.array(compressed_vectors), min_community_size=25, threshold=0.8)
 
 clusterd_compressed_vectors = [[] for i in range(len(clusters))]
 compressed_mean_vectors = []
@@ -187,12 +187,6 @@ targetVector = pca.transform(model.encode([targetText])) # targetVector는 데�
 pre_results = []
 pre_answerList = []
 for j in list(range(len(compressed_mean_vectors))):
-    if(j == 0):
-        print(compressed_mean_vectors[j])
-        print("-----------------------------")
-        print(targetVector)
-        print("-----------------------------")
-
     similarities = util.cos_sim(compressed_mean_vectors[j], targetVector) # compute similarity between sentence vectors
     pre_results.append((j, j, float(similarities)))
 pre_results.sort(key = lambda x : -x[2])

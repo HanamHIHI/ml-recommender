@@ -5,9 +5,7 @@ import torch
 import pandas as pd
 from tqdm import tqdm 
 import time
-from sklearn.decomposition import PCA
-# from sklearn.manifold import TSNE
-from openTSNE import TSNE
+import umap
 
 tags = ['hanam']
 tag = tags[0]
@@ -153,8 +151,15 @@ print("Start recommending")
 start_time = time.time()
 
 ndarray_vectors = np.array(list(zip(*mean_vectors))[0])
-tnse = TSNE(n_components=2, learning_rate='auto', initialization='random', perplexity=25, random_state=1234).fit(ndarray_vectors)
-compressed_vectors = tnse.transform(ndarray_vectors)
+# pca = PCA(n_components=16)
+# pca.fit(ndarray_vectors)
+# compressed_vectors = pca.transform(ndarray_vectors)
+
+reducer = umap.UMAP()
+reducer.fit(ndarray_vectors)
+print("fitting complete.")
+compressed_vectors = reducer.transform(ndarray_vectors)
+print("transforming complete.")
 
 print(ndarray_vectors.shape, compressed_vectors.shape)
 # print(reducted_vectors[0])
@@ -163,7 +168,7 @@ print(ndarray_vectors.shape, compressed_vectors.shape)
 # Two parameters to tune:
 # min_cluster_size: Only consider cluster that have at least 25 elements
 # threshold: Consider sentence pairs with a cosine-similarity larger than threshold as similar
-clusters = util.community_detection(np.array(compressed_vectors), min_community_size=25, threshold=0.8)
+clusters = util.community_detection(np.array(compressed_vectors), min_community_size=4, threshold=0.1)
 
 clusterd_compressed_vectors = [[] for i in range(len(clusters))]
 compressed_mean_vectors = []
@@ -180,12 +185,10 @@ for i, cluster in enumerate(clusters):
         clusterd_compressed_vectors[i].append((compressed_vectors[sentence_id], sentence_id))
     # list(zip(*a))[0]
     compressed_mean_vector = np.mean(list(zip(*clusterd_compressed_vectors[i]))[0], axis=0)
-    if(i == 0):
-        print(compressed_mean_vector.shape)
     compressed_mean_vectors.append(compressed_mean_vector)
 
 targetText = "비가 올 때 가면 좋아요" #상상 강의평
-targetVector = tnse.transform(model.encode([targetText])) # targetVector는 데스트 할 text string의 sentence vector
+targetVector = reducer.transform(model.encode([targetText])) # targetVector는 데스트 할 text string의 sentence vectorpre_results = []
 
 pre_results = []
 pre_answerList = []
